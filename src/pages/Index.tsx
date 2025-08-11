@@ -95,7 +95,7 @@ const Index = () => {
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">TinyURL Shortener</h1>
           <p className="mt-2 text-muted-foreground">
-            Paste a long URL, get a tiny link.
+            Paste a big nasty URL, get a tiny link.
           </p>
         </header>
 

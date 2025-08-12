@@ -6,19 +6,12 @@ import { Seo } from "@/components/Seo";
 import { toast } from "@/hooks/use-toast";
 
 const STORAGE_KEY = "tinyurl-history";
-const MOCK_SHORT_URL = "https://short.ly/abc123";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+//const MOCK_SHORT_URL = "https://short.ly/abc123";
 
 function isValidUrl(value: string) {
-  try {
-    // new URL throws for invalid URLs
-    // Also allow missing protocol by attempting to prepend https
-    const normalized = value.match(/^https?:\/\//i) ? value : `https://${value}`;
-    // eslint-disable-next-line no-new
-    new URL(normalized);
-    return true;
-  } catch {
-    return false;
-  }
+  const pattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/;
+  return pattern.test(value.trim());
 }
 
 const Index = () => {
@@ -58,20 +51,44 @@ const Index = () => {
     setLoading(true);
     setShortUrl(null);
 
-    // Simulate API call delay
-    await new Promise((res) => setTimeout(res, 1000));
+    try {
+      // CHANGED: Call backend API instead of mock delay
+      const response = await fetch(`${API_BASE_URL}/tiny-url/shorten`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: value }),
+      });
 
-    setShortUrl(MOCK_SHORT_URL);
-    setHistory((prev) => {
-      const next: HistoryItem[] = [
-        { longUrl: value, shortUrl: MOCK_SHORT_URL },
-        ...prev,
-      ];
-      return next.slice(0, 5);
-    });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    setLoading(false);
-  }, []);
+      // CHANGED: Assuming backend returns { shortUrl: "https://..." }
+      const data = await response.json();
+      if (!data.shortUrl) {
+        throw new Error("Invalid response from server");
+      }
+
+      setShortUrl(data.shortUrl);
+      setHistory((prev) => {
+        const next: HistoryItem[] = [
+          { longUrl: value, shortUrl: data.shortUrl },
+          ...prev,
+        ];
+        return next.slice(0, 5);
+      });
+    } catch (error: any) {
+      console.error("Error shortening URL:", error);
+      toast({
+        title: "Error",
+        description: "Failed to shorten URL. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []); // CHANGED: Removed MOCK_SHORT_URL usage
 
   const handleCopied = useCallback((value: string) => {
     if (value) {

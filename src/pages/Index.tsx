@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 
 const STORAGE_KEY = "tinyurl-history";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const TINY_URI = import.meta.env.VITE_TINY_URI;
 //const MOCK_SHORT_URL = "https://short.ly/abc123";
 
 function isValidUrl(value: string) {
@@ -53,7 +54,7 @@ const Index = () => {
 
     try {
       // CHANGED: Call backend API instead of mock delay
-      const response = await fetch(`${API_BASE_URL}/tiny-url/shorten`, {
+      const response = await fetch(`${API_BASE_URL}/${TINY_URI}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

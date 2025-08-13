@@ -21,33 +21,8 @@ function normalizeUrl(value: string): string {
 }
 
 function isValidUrl(value: string): boolean {
-  try {
-    const url = new URL(normalizeUrl(value));
-    
-    // Only allow http and https
-    if (!['http:', 'https:'].includes(url.protocol)) {
-      return false;
-    }
-    
-    // Block localhost and local IPs (best effort)
-    const hostname = url.hostname.toLowerCase();
-    if (hostname === 'localhost' || 
-        hostname === '127.0.0.1' || 
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
-      return false;
-    }
-    
-    // Enforce max length
-    if (url.href.length > 2048) {
-      return false;
-    }
-    
-    return true;
-  } catch {
-    return false;
-  }
+  const pattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/;
+  return pattern.test(value.trim());
 }
 
 const Index = () => {
@@ -80,9 +55,9 @@ const Index = () => {
       return;
     }
 
-    const normalizedUrl = normalizeUrl(value);
+    //const normalizedUrl = normalizeUrl(value);
     
-    if (!isValidUrl(normalizedUrl)) {
+    if (!isValidUrl(value)) {
       toast({ 
         title: "Invalid URL", 
         description: "Please enter a valid URL with a proper domain." 
@@ -92,10 +67,10 @@ const Index = () => {
 
     setLoading(true);
     setShortUrl(null);
-    setCurrentLongUrl(normalizedUrl);
+    setCurrentLongUrl(value);
 
     try {
-      const requestBody: any = { url: normalizedUrl };
+      const requestBody: any = { url: value };
       if (customAlias) {
         requestBody.customAlias = customAlias;
       }
@@ -120,7 +95,7 @@ const Index = () => {
       setShortUrl(data.shortUrl);
       setHistory((prev) => {
         const next: HistoryItem[] = [
-          { longUrl: normalizedUrl, shortUrl: data.shortUrl },
+          { longUrl: value, shortUrl: data.shortUrl },
           ...prev,
         ];
         return next.slice(0, 5);

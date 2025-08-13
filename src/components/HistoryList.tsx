@@ -90,10 +90,12 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
                       href={item.longUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 block"
+                      // FIX: Added the 'truncate' class to prevent overflow on narrow screens.
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 block truncate"
                       title={item.longUrl}
                     >
-                      {truncateUrl(item.longUrl, 60)}
+                      {/* FIX: Removed the JS truncate function to allow CSS to handle truncation responsively. */}
+                      {item.longUrl}
                     </a>
                   </div>
 

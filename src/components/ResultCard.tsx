@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, QrCode, Check, Globe } from "lucide-react";
-import QRCode from 'qrcode';
+import { Copy, ExternalLink, Check, Globe } from "lucide-react";
 
 interface ResultCardProps {
   shortUrl?: string | null;
@@ -11,75 +10,46 @@ interface ResultCardProps {
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({ shortUrl, longUrl, onCopy }) => {
+  // --- HOOKS ---
   const [copied, setCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
-  const [faviconUrl, setFaviconUrl] = useState<string>("");
-  const [pageTitle, setPageTitle] = useState<string>("");
 
-  if (!shortUrl) return null;
-
+  // --- EFFECTS ---
+  
+  // Effect to reset copied state when the URL changes.
   useEffect(() => {
-    // Simulate favicon and page title fetching
-    if (longUrl) {
-      try {
-        const url = new URL(longUrl.startsWith('http') ? longUrl : `https://${longUrl}`);
-        setFaviconUrl(`https://www.google.com/s2/favicons?domain=${url.hostname}&sz=32`);
-        setPageTitle(url.hostname.replace('www.', ''));
-      } catch {
-        setFaviconUrl("");
-        setPageTitle("Website");
-      }
-    }
-  }, [longUrl]);
+    setCopied(false);
+  }, [shortUrl]);
+
+
+  // --- CONDITIONAL RENDER (Must be AFTER hooks) ---
+  if (!shortUrl) {
+    return null;
+  }
+
+  // --- HANDLERS ---
 
   const handleCopy = async () => {
+    if (!shortUrl) return;
     try {
       await navigator.clipboard.writeText(shortUrl);
       setCopied(true);
       onCopy?.(shortUrl);
       setTimeout(() => setCopied(false), 2000);
-    } catch (e) {
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
       onCopy?.("");
     }
   };
 
-  const generateQRCode = async () => {
-    try {
-      const qrUrl = await QRCode.toDataURL(shortUrl, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#6366f1',
-          light: '#ffffff'
-        }
-      });
-      setQrCodeUrl(qrUrl);
-      setShowQR(true);
-    } catch (error) {
-      console.error('Error generating QR code:', error);
-    }
-  };
-
+  // --- RENDER ---
   return (
     <section aria-label="Shortened result" className="w-full">
       <Card className="card-glow animate-slide-up">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3">
-            {faviconUrl ? (
-              <img 
-                src={faviconUrl} 
-                alt="Website favicon" 
-                className="w-8 h-8 rounded-sm"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : (
-              <Globe className="w-8 h-8 text-muted-foreground" />
-            )}
+            <Globe className="w-8 h-8 text-muted-foreground" />
             <div className="flex-1">
-              <h3 className="font-semibold text-lg">{pageTitle || "Shortened Link"}</h3>
+              <h3 className="font-semibold text-lg">Shortened Link</h3>
               {longUrl && (
                 <p className="text-sm text-muted-foreground truncate max-w-xs md:max-w-md">
                   {longUrl}
@@ -100,16 +70,19 @@ const ResultCard: React.FC<ResultCardProps> = ({ shortUrl, longUrl, onCopy }) =>
                 className="font-mono text-primary font-medium flex-1 hover:underline transition-colors duration-200"
               >
                 {shortUrl}
+             </a>
+              {/* FIX: Wrap the icon in an anchor tag to make it a clickable link */}
+              <a href={shortUrl} target="_blank" rel="noopener noreferrer" aria-label="Open link in new tab">
+                <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-primary" />
               </a>
-              <ExternalLink className="h-4 w-4 text-muted-foreground" />
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex">
               <Button 
                 variant="default" 
                 onClick={handleCopy} 
-                className="flex-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               >
                 {copied ? (
                   <>
@@ -123,27 +96,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ shortUrl, longUrl, onCopy }) =>
                   </>
                 )}
               </Button>
-              
-              <Button 
-                variant="secondary" 
-                onClick={generateQRCode}
-                className="flex-1 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <QrCode className="mr-2 h-4 w-4" />
-                Generate QR Code
-              </Button>
             </div>
-
-            {/* QR Code Display */}
-            {showQR && qrCodeUrl && (
-              <div className="flex justify-center p-4 bg-white rounded-lg animate-scale-in">
-                <img 
-                  src={qrCodeUrl} 
-                  alt="QR Code for shortened URL" 
-                  className="w-48 h-48"
-                />
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

@@ -82,7 +82,7 @@ const Index = () => {
 
     const normalizedUrl = normalizeUrl(value);
     
-    if (!isValidUrl(value)) {
+    if (!isValidUrl(normalizedUrl)) {
       toast({ 
         title: "Invalid URL", 
         description: "Please enter a valid URL with a proper domain." 

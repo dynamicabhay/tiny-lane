@@ -122,6 +122,13 @@ const Index = () => {
 
   const canonical = useMemo(() => window.location.origin + "/", []);
 
+  // clearing history
+    const handleClearHistory = () => {
+      localStorage.removeItem(STORAGE_KEY);
+      setHistory([]);
+      //toast({ title: "History cleared", description: "Your recent links have been removed." });
+    }
+
   return (
     <main className="min-h-screen">
       <Seo
@@ -133,11 +140,10 @@ const Index = () => {
       <div className="container mx-auto max-w-4xl px-4 py-12">
         <header className="mb-12 text-center space-y-4">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            TinyURL Shortener
+            ChopURL
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Transform your long, unwieldy URLs into elegant, shareable links. 
-            Create custom aliases and generate QR codes with our modern shortening platform.
+            Shrink links. Add flair. Share everywhere.
           </p>
         </header>
 
@@ -146,7 +152,7 @@ const Index = () => {
 
           <ResultCard shortUrl={shortUrl} longUrl={currentLongUrl} onCopy={handleCopied} />
 
-          <HistoryList items={history} />
+          <HistoryList items={history} onClearHistory={handleClearHistory}/>
         </div>
 
         <footer className="mt-16 text-center text-muted-foreground">

@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Globe, Check } from "lucide-react";
+import { Copy, ExternalLink, Globe, Check, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+
+const STORAGE_KEY = "tinyurl-history";
 export interface HistoryItem {
   longUrl: string;
   shortUrl: string;
@@ -11,12 +13,27 @@ export interface HistoryItem {
 
 interface HistoryListProps {
   items: HistoryItem[];
+  onClearHistory?: () => void;
 }
 
-const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  if (!items?.length) return null;
+const HistoryList: React.FC<HistoryListProps> = ({ items, onClearHistory }) => {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [localItems, setLocalItems] = useState(items);
+
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
+
+  if (!localItems?.length) return null;
+
+  const handleClearHistory = () => {
+    onClearHistory();
+    toast({ title: "History cleared", description: "Your recent links have been removed." });
+  };
+
+
 
   const handleCopy = async (url: string, index: number) => {
     try {
@@ -45,24 +62,32 @@ const HistoryList: React.FC<HistoryListProps> = ({ items }) => {
   return (
     <section aria-label="History list" className="w-full">
       <Card className="card-glow animate-slide-up">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl">Your Recent Links</CardTitle>
+          <Button
+            onClick={handleClearHistory}
+            className="h-9 text-sm font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
+            variant="destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {items.map((item, idx) => {
               const faviconUrl = getFaviconUrl(item.longUrl);
               return (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-all duration-300 group"
                 >
                   {/* Favicon */}
                   <div className="flex-shrink-0">
                     {faviconUrl ? (
-                      <img 
-                        src={faviconUrl} 
-                        alt="Website favicon" 
+                      <img
+                        src={faviconUrl}
+                        alt="Website favicon"
                         className="w-4 h-4 rounded-sm"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';

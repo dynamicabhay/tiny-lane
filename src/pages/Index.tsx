@@ -157,7 +157,7 @@ const Index = () => {
 
         <footer className="mt-16 text-center text-muted-foreground">
           <p className="text-sm">
-            Built with ❤️ • Fast • Secure • Modern
+            Built with ❤️ • Fastt • Secure • Modern
           </p>
         </footer>
       </div>

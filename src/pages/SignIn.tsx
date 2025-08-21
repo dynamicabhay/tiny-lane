@@ -5,32 +5,47 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Seo } from "@/components/Seo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/auth/AuthProvider";
 
 const SignIn = () => {
+  const { signInEmail, signInGoogle } = useAuth(); // ✅ grab auth methods
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [error, setError] = useState<string | null>(null);
+  
+  // Google login
   const handleGoogleSignIn = async () => {
-    // Placeholder for Firebase Google Auth
-    console.log("Google sign in clicked");
+    try {
+      setLoading(true);
+      await signInGoogle();
+      navigate("/home"); // redirect to homepage after success
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in with Google");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Email login
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    
-    // Placeholder for Firebase Email Auth
-    console.log("Email sign in:", { email, password });
-    
-    // Simulate loading
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      setError(null);
+      await signInEmail(email, password);
+      navigate("/home"); // redirect to homepage
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
+
 
   return (
     <div className="min-h-screen flex">

@@ -6,34 +6,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Seo } from "@/components/Seo";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-
+import { useAuth } from "@/auth/AuthProvider";
 const SignUp = () => {
+  
+  const { signUpEmail, signInGoogle } = useAuth(); // ✅ grab auth methods
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGoogleSignUp = async () => {
-    // Placeholder for Firebase Google Auth
-    console.log("Google sign up clicked");
+   
+    try {
+      setLoading(true);
+      await signInGoogle();
+      navigate("/home"); // redirect to homepage after success
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in with Google");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!acceptTerms) return;
-    
-    setLoading(true);
-    
-    // Placeholder for Firebase Email Auth
-    console.log("Email sign up:", { email, password });
-    
-    // Simulate loading
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      setError(null);
+      await signUpEmail(email, password);
+      navigate("/home"); // redirect to homepage
+    } catch (err: any) {
+      setError(err.message || "Failed to sign up");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (

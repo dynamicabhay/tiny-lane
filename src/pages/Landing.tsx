@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Seo } from "@/components/Seo";
 import { Link } from "react-router-dom";
+import Nav from "@/components/Nav";
+
 import {
   Zap,
   BarChart3,
@@ -17,6 +19,7 @@ import {
   Clock,
   Globe
 } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 const Landing = () => {
   const [url, setUrl] = useState("");
@@ -34,28 +37,8 @@ const Landing = () => {
       />
 
       {/* Navbar */}
-      <nav className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto max-w-6xl px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ChopURL
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/signin">
-                <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
-                  Log In
-                </Button>
-              </Link>
-              <Link to="/signup">
-                <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
-                  Sign Up for Free
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+      <Nav />
+      
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
@@ -259,50 +242,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12 bg-card/10">
-        <div className="container mx-auto max-w-6xl px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                ChopURL
-              </h3>
-              <p className="text-muted-foreground">
-                Built for the web. Built for you.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-                <li><a href="/api" className="hover:text-primary transition-colors">API Docs</a></li>
-                <li><a href="/app" className="hover:text-primary transition-colors">Dashboard</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="/about" className="hover:text-primary transition-colors">About</a></li>
-                <li><a href="/contact" className="hover:text-primary transition-colors">Contact</a></li>
-                <li><a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Connect</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="https://github.com" className="hover:text-primary transition-colors">GitHub</a></li>
-                <li><a href="/docs" className="hover:text-primary transition-colors">Documentation</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-12 pt-8 border-t border-border/50 text-center text-muted-foreground">
-            <p>&copy; 2024 ChopURL. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer/>
     </main>
   );
 };

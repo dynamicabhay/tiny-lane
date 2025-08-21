@@ -4,6 +4,8 @@ import ResultCard from "@/components/ResultCard";
 import HistoryList, { HistoryItem } from "@/components/HistoryList";
 import { Seo } from "@/components/Seo";
 import { toast } from "@/hooks/use-toast";
+import Nav from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 
 const STORAGE_KEY = "tinyurl-history";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -56,6 +58,7 @@ const Index = () => {
     }
 
     //const normalizedUrl = normalizeUrl(value);
+    //console.log(customAlias);
     
     if (!isValidUrl(value)) {
       toast({ 
@@ -136,8 +139,9 @@ const Index = () => {
         description="Shorten long URLs into tiny links instantly. Generate QR codes, use custom aliases. Clean, modern dark theme."
         canonical={canonical}
       />
-
+      <Nav/>
       <div className="container mx-auto max-w-4xl px-4 py-12">
+        
         <header className="mb-12 text-center space-y-4">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             ChopURL
@@ -148,19 +152,15 @@ const Index = () => {
         </header>
 
         <div className="space-y-8">
+          
           <InputSection onShorten={handleShorten} loading={loading} />
 
           <ResultCard shortUrl={shortUrl} longUrl={currentLongUrl} onCopy={handleCopied} />
 
           <HistoryList items={history} onClearHistory={handleClearHistory}/>
         </div>
-
-        <footer className="mt-16 text-center text-muted-foreground">
-          <p className="text-sm">
-            Built with ❤️ • Fast • Secure • Modern
-          </p>
-        </footer>
       </div>
+      <Footer />
     </main>
   );
 };

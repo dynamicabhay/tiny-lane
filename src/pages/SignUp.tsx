@@ -6,28 +6,97 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Seo } from "@/components/Seo";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
+
+type FieldErrors = {
+  email?: string;
+  password?: string;
+  terms?: string;
+};
+
+const emailRegex =
+  /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i; // simple & reliable for UI validation
+
+function mapFirebaseError(err: any): {
+  field?: "email" | "password";
+  message: string;
+} {
+  // Try common shapes: REST (Axios), Firebase Web SDK, generic
+  const raw =
+    err?.response?.data?.error?.message ??
+    err?.code ??
+    err?.message ??
+    "UNKNOWN";
+
+  const code = String(raw).toUpperCase();
+
+  switch (code) {
+    case "EMAIL_EXISTS":
+    case "AUTH/EMAIL-ALREADY-IN-USE":
+      return { field: "email", message: "An account with this email already exists." };
+    case "INVALID_EMAIL":
+    case "AUTH/INVALID-EMAIL":
+      return { field: "email", message: "Please enter a valid email address." };
+    case "WEAK_PASSWORD : PASSWORD SHOULD BE AT LEAST 6 CHARACTERS":
+    case "WEAK_PASSWORD":
+    case "AUTH/WEAK-PASSWORD":
+      return { field: "password", message: "Use a stronger password (min 8 characters)." };
+    case "OPERATION_NOT_ALLOWED":
+    case "AUTH/OPERATION-NOT-ALLOWED":
+      return { message: "Email/password sign-up is disabled for this project." };
+    case "TOO_MANY_ATTEMPTS_TRY_LATER":
+    case "AUTH/TOO-MANY-REQUESTS":
+      return { message: "Too many attempts. Please try again later." };
+    case "INVALID_PASSWORD":
+    case "AUTH/INVALID-PASSWORD":
+      return { field: "password", message: "Incorrect password." };
+    default:
+      return { message: "Something went wrong. Please try again." };
+  }
+}
+
 const SignUp = () => {
-  
-  const { signUpEmail, signInGoogle } = useAuth(); // ✅ grab auth methods
+  const { signUpEmail, signInGoogle } = useAuth();
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const validateClient = () => {
+    const errs: FieldErrors = {};
+    if (!email) errs.email = "Email is required.";
+    else if (!emailRegex.test(email)) errs.email = "Please enter a valid email address.";
+
+    if (!password) errs.password = "Password is required.";
+    else if (password.length < 8) errs.password = "Password must be at least 8 characters.";
+
+    if (!acceptTerms) errs.terms = "You must accept the Terms and Privacy Policy.";
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleGoogleSignUp = async () => {
-   
+    setGlobalError(null);
+    setFieldErrors({});
     try {
       setLoading(true);
       await signInGoogle();
-      navigate("/home"); // redirect to homepage after success
+      navigate("/home");
     } catch (err: any) {
-      setError(err.message || "Failed to sign in with Google");
+      const mapped = mapFirebaseError(err);
+      if (mapped.field) {
+        setFieldErrors((prev) => ({ ...prev, [mapped.field!]: mapped.message }));
+      } else {
+        setGlobalError(mapped.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -35,16 +104,36 @@ const SignUp = () => {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGlobalError(null);
+
+    if (!validateClient()) return;
+
     try {
       setLoading(true);
-      setError(null);
       await signUpEmail(email, password);
-      navigate("/home"); // redirect to homepage
+      navigate("/home");
     } catch (err: any) {
-      setError(err.message || "Failed to sign up");
+      const mapped = mapFirebaseError(err);
+      if (mapped.field) {
+        setFieldErrors((prev) => ({ ...prev, [mapped.field!]: mapped.message }));
+      } else {
+        setGlobalError(mapped.message);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Clear field error as user types (big-app UX)
+  const onEmailChange = (v: string) => {
+    setEmail(v);
+    if (fieldErrors.email) setFieldErrors((f) => ({ ...f, email: undefined }));
+    if (globalError) setGlobalError(null);
+  };
+  const onPasswordChange = (v: string) => {
+    setPassword(v);
+    if (fieldErrors.password) setFieldErrors((f) => ({ ...f, password: undefined }));
+    if (globalError) setGlobalError(null);
   };
 
   return (
@@ -80,31 +169,38 @@ const SignUp = () => {
                 </Link>
               </p>
             </CardHeader>
+
             <CardContent className="space-y-6">
+              {/* Global error banner */}
+              {globalError && (
+                <div
+                  className="rounded-xl border border-destructive/30 bg-destructive/10 text-destructive px-3 py-2 text-sm"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {globalError}
+                </div>
+              )}
+
               {/* Google Sign Up */}
               <Button
                 onClick={handleGoogleSignUp}
                 variant="outline"
                 className="w-full h-12 glow-effect"
+                disabled={loading}
               >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
+                {loading ? (
+                  <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                )}
                 Continue with Google
               </Button>
 
@@ -118,7 +214,8 @@ const SignUp = () => {
               </div>
 
               {/* Email/Password Form */}
-              <form onSubmit={handleEmailSignUp} className="space-y-4">
+              <form onSubmit={handleEmailSignUp} className="space-y-4" noValidate>
+                {/* Email */}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -126,12 +223,34 @@ const SignUp = () => {
                     type="email"
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="glow-effect"
+                    onChange={(e) => onEmailChange(e.target.value)}
+                    className={`glow-effect ${fieldErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     required
+                    aria-invalid={!!fieldErrors.email}
+                    aria-describedby={fieldErrors.email ? "email-error" : undefined}
                   />
+                  {fieldErrors.email ? (
+                    <div id="email-error" className="text-xs text-destructive">
+                      {fieldErrors.email}{" "}
+                      {fieldErrors.email.includes("already exists") && (
+                        <>
+                          <Link to="/signin" className="underline">
+                            Log in
+                          </Link>{" "}
+                          or{" "}
+                          <Link to="/reset" className="underline">
+                            reset password
+                          </Link>
+                          .
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">We’ll never share your email.</p>
+                  )}
                 </div>
 
+                {/* Password */}
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
@@ -140,10 +259,12 @@ const SignUp = () => {
                       type={showPassword ? "text" : "password"}
                       placeholder="Create a strong password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="glow-effect pr-10"
+                      onChange={(e) => onPasswordChange(e.target.value)}
+                      className={`glow-effect pr-10 ${fieldErrors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       required
                       minLength={8}
+                      aria-invalid={!!fieldErrors.password}
+                      aria-describedby={fieldErrors.password ? "password-error" : undefined}
                     />
                     <Button
                       type="button"
@@ -159,16 +280,25 @@ const SignUp = () => {
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 8 characters long
-                  </p>
+                  {fieldErrors.password ? (
+                    <div id="password-error" className="text-xs text-destructive">
+                      {fieldErrors.password}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Password must be at least 8 characters long.</p>
+                  )}
                 </div>
 
+                {/* Terms */}
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="terms"
                     checked={acceptTerms}
-                    onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                    onCheckedChange={(checked) => {
+                      setAcceptTerms(checked as boolean);
+                      if (fieldErrors.terms) setFieldErrors((f) => ({ ...f, terms: undefined }));
+                      if (globalError) setGlobalError(null);
+                    }}
                   />
                   <Label htmlFor="terms" className="text-sm text-muted-foreground">
                     I agree to the{" "}
@@ -181,13 +311,25 @@ const SignUp = () => {
                     </Link>
                   </Label>
                 </div>
+                {fieldErrors.terms && (
+                  <div className="text-xs text-destructive -mt-3">{fieldErrors.terms}</div>
+                )}
 
                 <Button
                   type="submit"
                   className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 glow-effect"
-                  disabled={loading || !acceptTerms}
+                  disabled={loading}
                 >
-                  {loading ? "Creating account..." : "Create free account"}
+                  {loading ? (
+                    <span className="inline-flex items-center">
+                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      </svg>
+                      Creating account…
+                    </span>
+                  ) : (
+                    "Create free account"
+                  )}
                 </Button>
               </form>
             </CardContent>

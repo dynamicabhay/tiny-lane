@@ -9,6 +9,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PublicOnlyRoute from "./components/PublicOnlyRoute";
 
 ProtectedRoute
 const queryClient = new QueryClient();
@@ -21,9 +22,28 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          
+          {/* <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} /> */}
+
+          {/* Public-only routes */}
+        <Route
+          path="/signin"
+          element={
+            <PublicOnlyRoute>
+              <SignIn />
+            </PublicOnlyRoute>
+          }
+        />
+
+         <Route
+          path="/signup"
+          element={
+            <PublicOnlyRoute>
+              <SignUp />
+            </PublicOnlyRoute>
+          }
+        />
+
           {/* Protected routes */}
         <Route
           path="/home"

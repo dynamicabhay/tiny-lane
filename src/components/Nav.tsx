@@ -8,9 +8,11 @@ const Nav = () =>{
     <nav className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto max-w-6xl px-4 py-4">
           <div className="flex items-center justify-between">
+            <Link to="/">
             <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               ChopURL
             </div>
+            </Link>
             <div className="flex items-center space-x-4">
               {user ? (
               <Button 

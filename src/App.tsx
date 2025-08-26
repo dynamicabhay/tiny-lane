@@ -10,11 +10,21 @@ import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import { useAuth } from "./auth/AuthProvider";
+import AuthLoader from "./components/ui/auth-loader";
 
 ProtectedRoute
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+
+  const {loading} = useAuth();
+  if(loading) {
+    return <AuthLoader/>
+  }
+
+  return (
+  
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -59,6 +69,6 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+)};
 
 export default App;

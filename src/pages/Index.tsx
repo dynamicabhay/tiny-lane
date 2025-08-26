@@ -6,6 +6,7 @@ import { Seo } from "@/components/Seo";
 import { toast } from "@/hooks/use-toast";
 import Nav from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import Layout from "./Layout";
 
 const STORAGE_KEY = "tinyurl-history";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -133,19 +134,20 @@ const Index = () => {
     }
 
   return (
+    <Layout>
     <main className="min-h-screen">
       <Seo
         title="TinyURL Shortener — Fast, clean URL shortening with QR codes"
         description="Shorten long URLs into tiny links instantly. Generate QR codes, use custom aliases. Clean, modern dark theme."
         canonical={canonical}
       />
-      <Nav/>
+      {/* <Nav/> */}
       <div className="container mx-auto max-w-4xl px-4 py-12">
         
         <header className="mb-12 text-center space-y-4">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          {/* <h1 className="text-4xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             ChopURL
-          </h1>
+          </h1> */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Shrink links. Add flair. Share everywhere.
           </p>
@@ -162,6 +164,7 @@ const Index = () => {
       </div>
       <Footer />
     </main>
+    </Layout>
   );
 };
 

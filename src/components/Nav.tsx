@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/auth/AuthProvider";
+import AuthLoader from "./ui/auth-loader";
 const Nav = () =>{ 
   
-  const {user,signOutUser} = useAuth();
+  const {user,signOutUser,loading} = useAuth();
   return (
     <nav className="relative z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto max-w-6xl px-4 py-4">

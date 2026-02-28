@@ -7,6 +7,8 @@ import { toast } from "@/hooks/use-toast";
 import Nav from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import Layout from "./Layout";
+import { useAuth } from "@/auth/AuthProvider";
+import { getAuth } from "firebase/auth";
 
 const STORAGE_KEY = "tinyurl-history";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -33,7 +35,8 @@ const Index = () => {
   const [shortUrl, setShortUrl] = useState<string | null>(null);
   const [currentLongUrl, setCurrentLongUrl] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-
+  const auth = useAuth();
+  const { user } = useAuth();
   // Load history on mount
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -72,9 +75,12 @@ const Index = () => {
     setLoading(true);
     setShortUrl(null);
     setCurrentLongUrl(value);
+    
 
     try {
+      const token = await user.getIdToken();
       const requestBody: any = { url: value };
+      
       if (customAlias) {
         requestBody.customAlias = customAlias;
       }
@@ -83,7 +89,8 @@ const Index = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        },
+          "Authorization": `Bearer ${token}`,
+  },
         body: JSON.stringify(requestBody),
       });
 
